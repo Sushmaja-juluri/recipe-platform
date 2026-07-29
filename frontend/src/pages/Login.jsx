@@ -18,7 +18,8 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      const serverMsg = err.response?.data?.error ? `${err.response.data.message}: ${err.response.data.error}` : (err.response?.data?.message || 'Login failed');
+      setError(serverMsg);
     } finally {
       setSubmitting(false);
     }

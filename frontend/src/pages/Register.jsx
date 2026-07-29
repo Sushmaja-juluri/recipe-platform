@@ -19,7 +19,8 @@ export default function Register() {
       await register(name, email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const serverMsg = err.response?.data?.error ? `${err.response.data.message}: ${err.response.data.error}` : (err.response?.data?.message || 'Registration failed');
+      setError(serverMsg);
     } finally {
       setSubmitting(false);
     }
