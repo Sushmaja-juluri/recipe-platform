@@ -76,7 +76,10 @@ const connectDB = async () => {
 
   for (const uri of uriList) {
     try {
-      const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 4000 });
+      const conn = await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 12000,
+        connectTimeoutMS: 12000
+      });
       console.log(`✅ MongoDB connected successfully to host: ${conn.connection.host}`);
       connected = true;
       break;
