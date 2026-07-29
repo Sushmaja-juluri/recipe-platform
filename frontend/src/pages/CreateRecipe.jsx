@@ -23,10 +23,20 @@ export default function CreateRecipe() {
     setIngredients(next);
   };
 
+  const removeIngredient = (index) => {
+    if (ingredients.length <= 1) return;
+    setIngredients(ingredients.filter((_, i) => i !== index));
+  };
+
   const updateStep = (index, value) => {
     const next = [...steps];
     next[index] = value;
     setSteps(next);
+  };
+
+  const removeStep = (index) => {
+    if (steps.length <= 1) return;
+    setSteps(steps.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -73,7 +83,7 @@ export default function CreateRecipe() {
           Image URL (optional)
           <input className="input" value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://…" />
         </label>
-        <div className="form__row">
+        <div className="form__row form__row--3">
           <label className="form__label">
             Category
             <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
@@ -93,9 +103,12 @@ export default function CreateRecipe() {
         <fieldset className="form__fieldset">
           <legend>Ingredients</legend>
           {ingredients.map((ing, i) => (
-            <div className="form__row" key={i}>
+            <div className="form__dynamic-row" key={i}>
               <input className="input" placeholder="Amount (e.g. 2 cups)" value={ing.amount} onChange={(e) => updateIngredient(i, 'amount', e.target.value)} />
               <input className="input" placeholder="Ingredient (e.g. flour)" value={ing.name} onChange={(e) => updateIngredient(i, 'name', e.target.value)} />
+              {ingredients.length > 1 && (
+                <button type="button" className="btn btn--icon-danger" onClick={() => removeIngredient(i)} title="Remove ingredient">✕</button>
+              )}
             </div>
           ))}
           <button type="button" className="btn btn--ghost" onClick={() => setIngredients([...ingredients, { name: '', amount: '' }])}>
@@ -106,9 +119,12 @@ export default function CreateRecipe() {
         <fieldset className="form__fieldset">
           <legend>Steps</legend>
           {steps.map((step, i) => (
-            <div className="form__row" key={i}>
+            <div className="form__dynamic-row" key={i}>
               <span className="form__step-number mono">{i + 1}</span>
-              <textarea className="input" rows={2} value={step} onChange={(e) => updateStep(i, e.target.value)} />
+              <textarea className="input" rows={2} value={step} onChange={(e) => updateStep(i, e.target.value)} placeholder={`Step ${i + 1}`} />
+              {steps.length > 1 && (
+                <button type="button" className="btn btn--icon-danger" onClick={() => removeStep(i)} title="Remove step">✕</button>
+              )}
             </div>
           ))}
           <button type="button" className="btn btn--ghost" onClick={() => setSteps([...steps, ''])}>

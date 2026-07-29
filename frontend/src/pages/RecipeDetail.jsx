@@ -35,7 +35,7 @@ export default function RecipeDetail() {
   if (error) return <p className="empty-state">{error}</p>;
   if (!recipe) return <p className="empty-state">Loading…</p>;
 
-  const isOwner = user && recipe.author?._id === user.id;
+  const isOwner = user && ((recipe.author?._id || recipe.author)?.toString() === user.id);
 
   return (
     <div className="page page--narrow">
