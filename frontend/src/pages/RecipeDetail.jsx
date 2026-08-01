@@ -50,7 +50,12 @@ export default function RecipeDetail() {
           <span className="mono">{recipe.servings} servings</span>
           <span>by {recipe.author?.name || 'Unknown'}</span>
         </div>
-        {isOwner && <button className="btn btn--ghost btn--danger" onClick={handleDelete}>Delete recipe</button>}
+        {isOwner && (
+          <div className="recipe-detail__actions">
+            <Link to={`/recipes/${id}/edit`} className="btn btn--ghost">Edit recipe</Link>
+            <button className="btn btn--ghost btn--danger" onClick={handleDelete}>Delete recipe</button>
+          </div>
+        )}
         <div className="recipe-detail__columns">
           <section>
             <h2 className="recipe-detail__heading">Ingredients</h2>

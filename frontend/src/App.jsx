@@ -18,6 +18,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
           <Route path="/new" element={<PrivateRoute><CreateRecipe /></PrivateRoute>} />
+          <Route path="/recipes/:id/edit" element={<PrivateRoute><CreateRecipe /></PrivateRoute>} />
         </Routes>
       </main>
     </div>

@@ -1,10 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios';
 
 const CATEGORIES = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Drink'];
 
 export default function CreateRecipe() {
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
@@ -15,7 +18,30 @@ export default function CreateRecipe() {
   const [steps, setSteps] = useState(['']);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(isEditMode);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isEditMode) return;
+    const fetchRecipe = async () => {
+      try {
+        const { data } = await api.get(`/recipes/${id}`);
+        setTitle(data.title);
+        setDescription(data.description);
+        setImage(data.image || '');
+        setCategory(data.category);
+        setCookTime(String(data.cookTime));
+        setServings(String(data.servings));
+        setIngredients(data.ingredients.length ? data.ingredients : [{ name: '', amount: '' }]);
+        setSteps(data.steps.length ? data.steps : ['']);
+      } catch (err) {
+        setError('Failed to load recipe for editing.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecipe();
+  }, [id, isEditMode]);
 
   const updateIngredient = (index, field, value) => {
     const next = [...ingredients];
@@ -50,16 +76,23 @@ export default function CreateRecipe() {
       return;
     }
 
+    const payload = {
+      title, description, image, category,
+      cookTime: Number(cookTime),
+      servings: Number(servings),
+      ingredients: cleanIngredients,
+      steps: cleanSteps,
+    };
+
     setSubmitting(true);
     try {
-      const { data } = await api.post('/recipes', {
-        title, description, image, category,
-        cookTime: Number(cookTime),
-        servings: Number(servings),
-        ingredients: cleanIngredients,
-        steps: cleanSteps,
-      });
-      navigate(`/recipes/${data._id}`);
+      if (isEditMode) {
+        const { data } = await api.put(`/recipes/${id}`, payload);
+        navigate(`/recipes/${data._id}`);
+      } else {
+        const { data } = await api.post('/recipes', payload);
+        navigate(`/recipes/${data._id}`);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save recipe');
     } finally {
@@ -67,9 +100,11 @@ export default function CreateRecipe() {
     }
   };
 
+  if (loading) return <p className="empty-state">Loading…</p>;
+
   return (
     <div className="page page--narrow">
-      <h1 className="page__title">Write a new card</h1>
+      <h1 className="page__title">{isEditMode ? 'Edit your card' : 'Write a new card'}</h1>
       <form onSubmit={handleSubmit} className="form">
         <label className="form__label">
           Title
@@ -134,7 +169,7 @@ export default function CreateRecipe() {
 
         {error && <p className="form__error">{error}</p>}
         <button type="submit" className="btn btn--accent btn--block" disabled={submitting}>
-          {submitting ? 'Saving…' : 'Save recipe'}
+          {submitting ? 'Saving…' : isEditMode ? 'Update recipe' : 'Save recipe'}
         </button>
       </form>
     </div>
