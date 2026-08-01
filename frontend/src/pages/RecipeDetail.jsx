@@ -52,7 +52,7 @@ export default function RecipeDetail() {
         </div>
         {isOwner && (
           <div className="recipe-detail__actions">
-            <Link to={`/recipes/${id}/edit`} className="btn btn--ghost">Edit recipe</Link>
+            <Link to={`/recipes/${id}/edit`} className="btn btn--ghost btn--success">Edit recipe</Link>
             <button className="btn btn--ghost btn--danger" onClick={handleDelete}>Delete recipe</button>
           </div>
         )}
