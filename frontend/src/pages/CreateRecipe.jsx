@@ -11,6 +11,7 @@ export default function CreateRecipe() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
+  const [imageMode, setImageMode] = useState('upload'); // 'upload' or 'url'
   const [category, setCategory] = useState('Dinner');
   const [cookTime, setCookTime] = useState('');
   const [servings, setServings] = useState('');
@@ -19,6 +20,7 @@ export default function CreateRecipe() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +45,36 @@ export default function CreateRecipe() {
     fetchRecipe();
   }, [id, isEditMode]);
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.secure_url) {
+        setImage(data.secure_url);
+      } else {
+        setError('Image upload failed. Try again.');
+      }
+    } catch (err) {
+      setError('Image upload failed. Try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const updateIngredient = (index, field, value) => {
     const next = [...ingredients];
     next[index][field] = value;
@@ -63,6 +95,11 @@ export default function CreateRecipe() {
   const removeStep = (index) => {
     if (steps.length <= 1) return;
     setSteps(steps.filter((_, i) => i !== index));
+  };
+
+  const switchImageMode = (mode) => {
+    setImageMode(mode);
+    setImage(''); // clear previous selection when switching modes
   };
 
   const handleSubmit = async (e) => {
@@ -114,10 +151,43 @@ export default function CreateRecipe() {
           Description
           <textarea className="input" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} required />
         </label>
-        <label className="form__label">
-          Image URL (optional)
-          <input className="input" value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://…" />
-        </label>
+
+        <div className="form__label">
+          Recipe image (optional)
+          <div className="toolbar__tabs" style={{ marginBottom: 6 }}>
+            <button
+              type="button"
+              className={`tab ${imageMode === 'upload' ? 'tab--active' : ''}`}
+              onClick={() => switchImageMode('upload')}
+            >
+              Upload from device
+            </button>
+            <button
+              type="button"
+              className={`tab ${imageMode === 'url' ? 'tab--active' : ''}`}
+              onClick={() => switchImageMode('url')}
+            >
+              Paste image link
+            </button>
+          </div>
+
+          {imageMode === 'upload' ? (
+            <input type="file" accept="image/*" className="input" onChange={handleImageUpload} disabled={uploading} />
+          ) : (
+            <input
+              className="input"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+              placeholder="https://…"
+            />
+          )}
+        </div>
+
+        {uploading && <p className="mono">Uploading image…</p>}
+        {image && (
+          <img src={image} alt="Preview" style={{ maxWidth: '200px', borderRadius: 'var(--radius)' }} />
+        )}
+
         <div className="form__row form__row--3">
           <label className="form__label">
             Category
@@ -168,7 +238,7 @@ export default function CreateRecipe() {
         </fieldset>
 
         {error && <p className="form__error">{error}</p>}
-        <button type="submit" className="btn btn--accent btn--block" disabled={submitting}>
+        <button type="submit" className="btn btn--accent btn--block" disabled={submitting || uploading}>
           {submitting ? 'Saving…' : isEditMode ? 'Update recipe' : 'Save recipe'}
         </button>
       </form>
